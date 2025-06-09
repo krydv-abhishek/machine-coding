@@ -1,8 +1,10 @@
 package org.abhishek.snakeandladder.model;
 
-public class Player {
+import org.abhishek.snakeandladder.Game;
 
-    private final String name;
+public abstract class Player {
+
+    protected final String name;
     private int currentPosition;
 
     public Player(String name) {
@@ -18,7 +20,7 @@ public class Player {
         this.currentPosition = position;
     }
 
-    public String getName() {
-        return name;
-    }
+    public abstract String getName();
+
+    public abstract int play(Game game);
 }

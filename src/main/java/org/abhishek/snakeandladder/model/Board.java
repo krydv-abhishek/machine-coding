@@ -2,12 +2,18 @@ package org.abhishek.snakeandladder.model;
 
 public class Board {
 
+    private static Board boardSingleton;
     private final int[] boardMap;
-
-    public Board(int size) {
-        boardMap = new int[size * size+1];
+    private Board(int size) {
+        boardMap = new int[size*size +1];
     }
 
+    public static synchronized Board getInstance(int size) {
+        if(boardSingleton==null) {
+            boardSingleton = new Board(size);
+        }
+        return boardSingleton;
+    }
 
     public void addLadderOrSnake(int start, int end) {
         if(boardMap[start]==0) {

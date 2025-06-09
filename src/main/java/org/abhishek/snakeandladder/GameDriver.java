@@ -1,7 +1,8 @@
 package org.abhishek.snakeandladder;
 
 import org.abhishek.snakeandladder.model.Board;
-import org.abhishek.snakeandladder.model.Player;
+import org.abhishek.snakeandladder.model.factory.HumanPlayerFactory;
+import org.abhishek.snakeandladder.model.factory.PlayerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -53,8 +54,10 @@ public class GameDriver {
             int noOfPlayers = Integer.parseInt(br.readLine());
 
             //System.out.print("Enter " + noOfPlayers + " player names: ");
+            PlayerFactory playerFactory = new HumanPlayerFactory();
+
             while (noOfPlayers > 0) {
-                game.addPlayer(new Player(br.readLine()));
+                game.addPlayer(playerFactory.getPlayer(br.readLine()));
                 noOfPlayers--;
             }
 
