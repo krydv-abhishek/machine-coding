@@ -17,7 +17,7 @@ public class HumanPlayer extends Player {
     @Override
     public int play(Game game) {
         int currentPosition = this.getCurrentPosition();
-        int diceRoll = game.getDice().roll();
+        int diceRoll = game.getDice().roll(this);
         int nextPosition = currentPosition + diceRoll;
 
         Board board = game.getBoard();
