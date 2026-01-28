@@ -25,7 +25,7 @@ public class Game {
     public boolean playRound() {
         if (players.size() > 1) {
             Iterator<Player> iterator = players.iterator();
-            while (iterator.hasNext()) {
+            while (iterator.next()!=null) {
                 Player player = iterator.next();
                 int nextPosition = player.play(this);
                 if (nextPosition == board.getFinalSize()-1) {
