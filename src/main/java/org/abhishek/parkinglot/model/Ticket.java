@@ -73,7 +73,7 @@ public class Ticket {
         this.exitAt = exitAt;
     }
 
-    public void close() {
+    public synchronized void close() {
         this.setExitAt(LocalDateTime.now());
         if(TicketStatusEnum.CLOSE.equals(this.status)) {
            throw new AlreadyUnparkedException("Vehicle is already un parked");

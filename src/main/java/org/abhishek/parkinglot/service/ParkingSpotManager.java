@@ -2,35 +2,44 @@ package org.abhishek.parkinglot.service;
 
 import org.abhishek.parkinglot.enums.ParkingSpotType;
 import org.abhishek.parkinglot.enums.VehicleType;
+import org.abhishek.parkinglot.exception.NoSpotAvailableException;
 import org.abhishek.parkinglot.model.ParkingFloor;
 import org.abhishek.parkinglot.model.ParkingLot;
 import org.abhishek.parkinglot.model.ParkingSpot;
 import org.abhishek.parkinglot.repository.ParkingLotRepository;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ParkingSpotManager {
 
     private final ParkingLotRepository parkingLotRepository;
+    private final ReentrantLock lock = new ReentrantLock(true); // fair lock
+
 
     public ParkingSpotManager(ParkingLotRepository parkingLotRepository) {
         this.parkingLotRepository = parkingLotRepository;
     }
 
-    public synchronized ParkingSpot findAndReserveSpot(VehicleType vehicleType) {
-        for (ParkingLot parkingLot : parkingLotRepository.getAllParkingLot()) {
-            List<ParkingFloor> parkingFloors = parkingLot.getParkingFloors();
-            for (ParkingFloor parkingFloor : parkingFloors) {
-                List<ParkingSpot> parkingSpots = parkingFloor.getParkingSpots();
-                for (ParkingSpot parkingSpot : parkingSpots) {
-                    if (parkingSpot.isAvailable() && isCompatible(parkingSpot, vehicleType)) {
-                        parkingSpot.occupy();
-                        return parkingSpot;
+    public ParkingSpot findAndReserveSpot(VehicleType vehicleType) {
+        lock.lock();
+        try {
+            for (ParkingLot parkingLot : parkingLotRepository.getAllParkingLot()) {
+                List<ParkingFloor> parkingFloors = parkingLot.getParkingFloors();
+                for (ParkingFloor parkingFloor : parkingFloors) {
+                    List<ParkingSpot> parkingSpots = parkingFloor.getParkingSpots();
+                    for (ParkingSpot parkingSpot : parkingSpots) {
+                        if (parkingSpot.isAvailable() && isCompatible(parkingSpot, vehicleType)) {
+                            parkingSpot.occupy();
+                            return parkingSpot;
+                        }
                     }
                 }
             }
+            throw new NoSpotAvailableException("Parking spot not available");
+        } finally {
+            lock.unlock();
         }
-        throw new RuntimeException("Parking spot not available");
     }
 
     private boolean isCompatible(ParkingSpot parkingSpot, VehicleType vehicleType) {
@@ -42,7 +51,12 @@ public class ParkingSpotManager {
     }
 
     public void releaseSpot(ParkingSpot parkingSpot) {
-        parkingSpot.release();
+        lock.lock();
+        try {
+            parkingSpot.release();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int getAvailableCount() {
