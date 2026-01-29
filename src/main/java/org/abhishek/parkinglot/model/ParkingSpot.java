@@ -26,6 +26,10 @@ public class ParkingSpot {
         return id;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public ParkingLot getParkingLot() {
         return parkingLot;
     }
