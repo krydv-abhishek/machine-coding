@@ -20,9 +20,7 @@ public class ProcessingState implements VendingMachineState {
 
     @Override
     public void insertCoin(Coin coin) {
-        vendingMachine.getPaymentProcessor().acceptCoin(coin, 1);
         vendingMachine.setInsertedAmount(vendingMachine.getInsertedAmount() + coin.getValue());
-
         Product product = vendingMachine.getProductInventory().getProduct(vendingMachine.getSelectedProductId());
 
         if (vendingMachine.getInsertedAmount() >= product.getPrice()) {
@@ -32,7 +30,7 @@ public class ProcessingState implements VendingMachineState {
                 vendingMachine.setState(new IdleState(vendingMachine));
                 return;
             }
-
+            vendingMachine.getPaymentProcessor().acceptCoin(coin, 1);
             vendingMachine.getProductInventory().deduct(vendingMachine.getSelectedProductId());
             System.out.println("Dispensing product");
             vendingMachine.getPaymentProcessor().returnChange(change);
