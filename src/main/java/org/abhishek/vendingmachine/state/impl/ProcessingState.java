@@ -20,27 +20,34 @@ public class ProcessingState implements VendingMachineState {
 
     @Override
     public void insertCoin(Coin coin) {
+        if (vendingMachine.getInsertedAmount() == 0) {
+            vendingMachine.beginTransaction();
+        }
+        vendingMachine.getPaymentProcessor().acceptCoin(coin, 1);
         vendingMachine.setInsertedAmount(vendingMachine.getInsertedAmount() + coin.getValue());
         Product product = vendingMachine.getProductInventory().getProduct(vendingMachine.getSelectedProductId());
 
-        if (vendingMachine.getInsertedAmount() >= product.getPrice()) {
-            int change = vendingMachine.getInsertedAmount() - product.getPrice();
-            if(!vendingMachine.getPaymentProcessor().canReturnChange(change)) {
-                vendingMachine.getPaymentProcessor().refund(vendingMachine.getInsertedAmount());
-                vendingMachine.setState(new IdleState(vendingMachine));
-                return;
-            }
-            vendingMachine.getPaymentProcessor().acceptCoin(coin, 1);
-            vendingMachine.getProductInventory().deduct(vendingMachine.getSelectedProductId());
-            System.out.println("Dispensing product");
-            vendingMachine.getPaymentProcessor().returnChange(change);
-            vendingMachine.setState(new IdleState(vendingMachine));
+        if (vendingMachine.getInsertedAmount() < product.getPrice()) {
+            return;
         }
+
+        int change = vendingMachine.getInsertedAmount() - product.getPrice();
+        boolean canProceed = vendingMachine.getPaymentProcessor().canPrepareChange(change)
+                && vendingMachine.getProductInventory().canReserve(vendingMachine.getSelectedProductId(), 1);
+
+        if(!canProceed) {
+            vendingMachine.rollback();
+            return;
+        }
+        vendingMachine.getProductInventory().reserve(vendingMachine.getSelectedProductId(), 1);
+        vendingMachine.getPaymentProcessor().prepareChange(change);
+
+        vendingMachine.commit(change);
+
     }
 
     @Override
     public void cancel() {
-        vendingMachine.getPaymentProcessor().refund(vendingMachine.getInsertedAmount());
-        vendingMachine.setState(new IdleState(vendingMachine));
+        vendingMachine.rollback();
     }
 }

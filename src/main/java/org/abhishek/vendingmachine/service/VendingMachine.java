@@ -5,9 +5,11 @@ import org.abhishek.vendingmachine.repository.ProductInventory;
 import org.abhishek.vendingmachine.state.VendingMachineState;
 import org.abhishek.vendingmachine.state.impl.IdleState;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class VendingMachine {
 
-
+    private final ReentrantLock lock = new ReentrantLock();
     private VendingMachineState machineState;
     private final PaymentProcessor paymentProcessor;
     private final ProductInventory productInventory;
@@ -51,15 +53,58 @@ public class VendingMachine {
     }
 
     public void selectProduct(String productId) {
-        machineState.selectProduct(productId);
+        /*
+        \
+           One lock
+           One owner (VendingMachine)
+           Linear flow
+           Deadlock risk = zero
+         */
+        lock.lock();
+        try {
+            machineState.selectProduct(productId);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void insertCoin(Coin coin) {
-        machineState.insertCoin(coin);
+        lock.lock();
+        try {
+            machineState.insertCoin(coin);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void cancel() {
-        machineState.cancel();
+        lock.lock();
+        try {
+            machineState.cancel();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void beginTransaction() {
+        paymentProcessor.begin();
+        productInventory.begin();
+    }
+
+    public void commit(int change) {
+        paymentProcessor.commit();
+        productInventory.commit();
+        System.out.println("Dispensing product");
+        paymentProcessor.returnChange(change);
+        this.setState(new IdleState(this));
+
+    }
+
+    public void rollback() {
+        paymentProcessor.rollback();
+        productInventory.rollback();
+        paymentProcessor.refund(this.insertedAmount);
+        this.setState(new IdleState(this));
     }
 
 
