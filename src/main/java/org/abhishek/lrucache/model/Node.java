@@ -4,6 +4,7 @@ public class Node<K, V> {
 
     private K key;
     private V value;
+    private Long expiryTime;
     Node left;
     Node right;
 
@@ -12,6 +13,14 @@ public class Node<K, V> {
         this.value = value;
         this.left = null;
         this.right = null;
+    }
+
+    public Node(K key, V value, long ttlInSeconds) {
+        this.key = key;
+        this.value = value;
+        this.left = null;
+        this.right = null;
+        this.expiryTime = System.currentTimeMillis() + ttlInSeconds * 1000;
     }
 
     public K getKey() {
@@ -24,5 +33,12 @@ public class Node<K, V> {
 
     public void setValue(V value) {
         this.value = value;
+    }
+
+    public boolean isExpired() {
+        if (this.expiryTime != null) {
+            return System.currentTimeMillis() > this.expiryTime;
+        }
+        return false;
     }
 }

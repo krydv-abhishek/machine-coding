@@ -34,6 +34,20 @@ public class LRUCache<K, V> {
         }
     }
 
+    public void addKey(K key, V value, long ttlInSeconds) {
+        lock.lock();
+        try {
+            Objects.requireNonNull(key, "Key should not be null");
+            Objects.requireNonNull(value, "Value should not be null");
+            if (lruRepository.getSize() >= capacity) {
+                lruRepository.removeTail();
+            }
+            lruRepository.addKey(key, value, ttlInSeconds);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public V getKey(K key) {
         lock.lock();
         try {
