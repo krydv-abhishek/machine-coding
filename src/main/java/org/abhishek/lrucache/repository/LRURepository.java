@@ -3,15 +3,16 @@ package org.abhishek.lrucache.repository;
 import org.abhishek.lrucache.model.DoubleLinkedList;
 import org.abhishek.lrucache.model.Node;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LRURepository<K, V> {
 
-    private final ConcurrentHashMap<K, Node<K, V>> map;
+    private final Map<K, Node<K, V>> map;
     private final DoubleLinkedList<K, V> doubleLinkedList;
 
     public LRURepository() {
-        map = new ConcurrentHashMap<>();
+        map = new HashMap<>();
         doubleLinkedList = new DoubleLinkedList<>();
     }
 
